@@ -15,6 +15,7 @@ All 16.0.1 builds come preconfigured to join the WiFi network `WLED`.
 
 | Folder | Contents |
 |---|---|
+| `17.0.0-dev-wordclock-fixes/` | Test builds (WLED 17.0 development, not a release) with the word clock usermod fixes: Lazy Grid Clock (ESP32, ESP8266), Word Clock (ESP32) |
 | `16.0.1/` | Lazy Grid Clock (ESP32, ESP8266), Word Clock (ESP32), plus `platformio_override.ini` with the build configs |
 | `0.14.0-b2/` | Word Clock (ESP32) |
 | `0.14.0-b0/` | Lazy Grid Clock (ESP8266), Word Clock |
