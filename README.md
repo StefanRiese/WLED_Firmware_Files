@@ -15,7 +15,7 @@ All 16.0.1 builds come preconfigured to join the WiFi network `WLED`.
 
 | Folder | Contents |
 |---|---|
-| `16.0.1/` | `platformio_override.ini` with all current build configs |
+| `16.0.1/` | Lazy Grid Clock (ESP32, ESP8266), Word Clock (ESP32), plus `platformio_override.ini` with the build configs |
 | `0.14.0-b2/` | Word Clock (ESP32) |
 | `0.14.0-b0/` | Lazy Grid Clock (ESP8266), Word Clock |
 | `0.13.2-a0/` | Word Clock (ESP8266) |
