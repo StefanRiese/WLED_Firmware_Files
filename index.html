@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WLED Firmware Flasher</title>
+<script type="module" src="https://unpkg.com/esp-web-tools@10.0.1/dist/web/install-button.js?module"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1c1f24; --muted: #5d6673;
+    --border: #dde1e7; --accent: #0b6bcb; --accent-text: #ffffff;
+    --warn-bg: #fff4d6; --warn-text: #6b4e00; --tag: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121418; --card: #1b1e24; --text: #e6e8eb; --muted: #9aa3ae;
+      --border: #2c313a; --accent: #4c9eff; --accent-text: #0b1220;
+      --warn-bg: #3a2f10; --warn-text: #f3d68a; --tag: #262b33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0; }
+  p { margin: 0 0 12px; }
+  .lead { color: var(--muted); margin-bottom: 24px; }
+  .notice {
+    background: var(--warn-bg); color: var(--warn-text);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 24px;
+  }
+  .notice[hidden] { display: none; }
+  ol.steps { padding-left: 20px; margin: 0 0 28px; color: var(--muted); }
+  ol.steps li { margin-bottom: 4px; }
+  .release {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  }
+  .release header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .release .note { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+  .tag {
+    font-size: 0.75rem; padding: 1px 8px; border-radius: 999px;
+    background: var(--tag); color: var(--muted);
+  }
+  .fw {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 8px 16px; padding: 10px 0; border-top: 1px solid var(--border);
+  }
+  .fw .name { font-weight: 600; }
+  .fw .chips { display: flex; gap: 6px; margin-top: 2px; }
+  .fw .actions { display: flex; align-items: center; gap: 12px; }
+  .fw a.dl { color: var(--muted); font-size: 0.85rem; }
+  button.install {
+    font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: var(--accent-text);
+    border: 0; border-radius: 6px; padding: 7px 16px;
+  }
+  details.legacy summary { cursor: pointer; margin: 8px 0 16px; color: var(--muted); }
+  footer { color: var(--muted); font-size: 0.85rem; margin-top: 32px; }
+  code { font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>WLED Firmware Flasher</h1>
+  <p class="lead">Flash our custom WLED builds to an ESP32 or ESP8266 over USB, straight from the browser.</p>
+
+  <div class="notice" id="unsupported" hidden>
+    Your browser does not support Web Serial. Use Chrome or Edge on a desktop computer.
+  </div>
+
+  <ol class="steps">
+    <li>Connect the ESP with a USB data cable.</li>
+    <li>Click <strong>Install</strong> for the firmware you want and pick the serial port.</li>
+    <li>The matching build (ESP32 or ESP8266) is selected automatically.</li>
+    <li>Choose <em>Erase device</em> when switching between major WLED versions (required for ESP32 0.13/0.14 → 16+).</li>
+  </ol>
+
+  <div id="releases"><p>Loading firmware list…</p></div>
+
+  <footer>
+    ESP32 builds are flashed together with a shared bootloader and the WLED 4&nbsp;MB partition table
+    (1.5&nbsp;MB app, 1&nbsp;MB file system). Powered by
+    <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.
+  </footer>
+</main>
+
+<script type="module">
+  if (!("serial" in navigator)) document.getElementById("unsupported").hidden = false;
+
+  const base = new URL(".", location.href);
+  const abs = (p) => new URL(p, base).href;
+
+  function manifestFor(release, fw, boot) {
+    const builds = [];
+    if (fw.builds.ESP32) {
+      builds.push({
+        chipFamily: "ESP32",
+        parts: [
+          { path: abs(boot.bootloader), offset: 0x1000 },
+          { path: abs(boot.partitions), offset: 0x8000 },
+          { path: abs(boot.bootApp0), offset: 0xE000 },
+          { path: abs(fw.builds.ESP32), offset: 0x10000 },
+        ],
+      });
+    }
+    if (fw.builds.ESP8266) {
+      builds.push({
+        chipFamily: "ESP8266",
+        parts: [{ path: abs(fw.builds.ESP8266), offset: 0 }],
+      });
+    }
+    const manifest = {
+      name: `WLED ${fw.device}`,
+      version: release.version,
+      new_install_prompt_erase: true,
+      builds,
+    };
+    return URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/json" }));
+  }
+
+  function el(tag, attrs = {}, ...children) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    e.append(...children);
+    return e;
+  }
+
+  function renderRelease(release, boot) {
+    const header = el("header", {}, el("h2", {}, `WLED ${release.version}`));
+    if (release.prerelease) header.append(el("span", { class: "tag" }, "test build"));
+    const card = el("section", { class: "release" }, header);
+    if (release.note) card.append(el("p", { class: "note" }, release.note));
+
+    for (const fw of release.firmwares) {
+      const chips = el("div", { class: "chips" },
+        ...Object.keys(fw.builds).map((c) => el("span", { class: "tag" }, c)));
+
+      const button = el("esp-web-install-button", { manifest: manifestFor(release, fw, boot) });
+      button.append(
+        el("button", { slot: "activate", class: "install" }, "Install"),
+        el("span", { slot: "unsupported" }, "Browser not supported"),
+        el("span", { slot: "not-allowed" }, "Needs HTTPS"),
+      );
+
+      const downloads = Object.entries(fw.builds).map(([chip, path]) =>
+        el("a", { class: "dl", href: path, download: "" }, `.bin ${chip}`));
+
+      card.append(el("div", { class: "fw" },
+        el("div", {}, el("div", { class: "name" }, fw.device), chips),
+        el("div", { class: "actions" }, ...downloads, button)));
+    }
+    return card;
+  }
+
+  try {
+    const res = await fetch("firmware.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const root = document.getElementById("releases");
+    root.replaceChildren();
+
+    const current = data.releases.filter((r) => !r.legacy);
+    const legacy = data.releases.filter((r) => r.legacy);
+    current.forEach((r) => root.append(renderRelease(r, data.esp32Boot)));
+    if (legacy.length) {
+      const details = el("details", { class: "legacy" },
+        el("summary", {}, `Legacy builds (WLED 0.13 / 0.14) – ${legacy.length} releases`));
+      legacy.forEach((r) => details.append(renderRelease(r, data.esp32Boot)));
+      root.append(details);
+    }
+  } catch (err) {
+    document.getElementById("releases").textContent = `Could not load firmware.json: ${err.message}`;
+  }
+</script>
+</body>
+</html>

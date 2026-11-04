@@ -40,6 +40,8 @@ Since WLED 16.0, usermods are selected with `custom_usermods = ...` instead of `
 
 ## Flashing / upgrading
 
+**Web flasher:** open [`index.html`](https://stefanriese.github.io/WLED_Firmware_Files/) (GitHub Pages) in Chrome or Edge, connect the ESP via USB and click *Install*. The ESP32/ESP8266 build is chosen automatically. ESP32 builds are app-only images, so the page also flashes `esp32_boot/` (bootloader @0x1000, WLED 4MB partition table @0x8000, boot_app0 @0xE000, app @0x10000). To add a firmware, put the `.bin` in its version folder and add an entry to `firmware.json`.
+
 - **ESP8266:** can be updated via OTA from older versions.
 - **ESP32:** devices on 0.13/0.14 **cannot** be updated via OTA to 16.x. Erase the flash first (`esptool erase_flash`), then flash via USB.
 
