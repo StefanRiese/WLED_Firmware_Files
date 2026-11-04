@@ -19,7 +19,7 @@
     },
     {
       "version": "16.0.1",
-      "note": "Current release – joins WiFi network \"WLED\"",
+      "note": "Current release",
       "firmwares": [
         { "device": "Lazy Grid Clock", "builds": {
           "ESP32": "16.0.1/WLED_16.0.1_ESP32_LazyGridClock.bin",

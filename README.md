@@ -9,7 +9,7 @@ Custom [WLED](https://github.com/wled/WLED) firmware builds for my devices.
 | [Lazy Grid Clock](#lazy-grid-clock) | ESP32, ESP8266 (NodeMCU v2) | Seven Segment Display Reloaded, SN Photoresistor | 16.0.1 |
 | [Word Clock](#word-clock) | ESP32 | Word Clock | 16.0.1 |
 
-All 16.0.1 builds come preconfigured to join the WiFi network `WLED`.
+WiFi is not preconfigured. After flashing, set it up in the browser flasher (Improv) or via the WLED access point (`WLED-AP`, password `wled1234`).
 
 ## Repository layout
 
@@ -50,12 +50,12 @@ Since WLED 16.0, usermods are selected with `custom_usermods = ...` instead of `
 ```ini
 [env:lazy_grid_clock_esp32]
 extends = env:esp32dev
-build_flags = ${env:esp32dev.build_flags} -D CLIENT_SSID='"WLED"' -D CLIENT_PASS='"***REMOVED***"'
+build_flags = ${env:esp32dev.build_flags}
 custom_usermods = seven_segment_display_reloaded SN_Photoresistor
 
 [env:lazy_grid_clock_esp8266]
 extends = env:nodemcuv2
-build_flags = ${env:nodemcuv2.build_flags} -D WLED_DISABLE_ALEXA -D CLIENT_SSID='"WLED"' -D CLIENT_PASS='"***REMOVED***"'
+build_flags = ${env:nodemcuv2.build_flags} -D WLED_DISABLE_ALEXA
 custom_usermods = seven_segment_display_reloaded SN_Photoresistor
 ```
 
@@ -71,7 +71,7 @@ M: 6,15,28;6,7,8;8,9,10;10,11,32;30,31,32;28,29,30;8,13,30:50,59,72;50,51,52;52,
 ```ini
 [env:wordclock_esp32]
 extends = env:esp32dev
-build_flags = ${env:esp32dev.build_flags} -D CLIENT_SSID='"WLED"' -D CLIENT_PASS='"***REMOVED***"'
+build_flags = ${env:esp32dev.build_flags}
 custom_usermods = usermod_v2_word_clock
 ```
 
@@ -116,17 +116,3 @@ board_build.partitions = ${esp32.default_partitions}
 ```
 </details>
 
-<details>
-<summary>WiFi settings (ESP8266)</summary>
-
-```ini
-[env:nodemcuv2]
-board = nodemcuv2
-platform = ${common.platform_wled_default}
-platform_packages = ${common.platform_packages}
-board_build.ldscript = ${common.ldscript_4m1m}
-build_unflags = ${common.build_unflags}
-build_flags = ${common.build_flags_esp8266} -D WLED_RELEASE_NAME=ESP8266 -D CLIENT_SSID='"WLED"' -D CLIENT_PASS='"***REMOVED***"'
-lib_deps = ${esp8266.lib_deps}
-```
-</details>
